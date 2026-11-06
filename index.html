@@ -65,7 +65,13 @@
 <main class="board" id="main" tabindex="-1">
   <div class="grid" id="sheet"></div>
   <div class="more hidden" id="more"><button class="btn" type="button" id="more-btn">Load more from each source</button></div>
-  <div class="clearline"><button type="button" class="btn quiet danger" id="clear-picks" disabled>Clear all picks</button></div>
+  <div class="pickline">
+    <span class="label">Your picks file</span>
+    <button type="button" class="btn" id="open-picks">Open a picks file</button>
+    <button type="button" class="btn" id="save-picks" disabled>Save picks to a file</button>
+    <button type="button" class="btn quiet danger" id="clear-picks" disabled>Clear all picks</button>
+    <input type="file" id="picks-file" accept=".json,application/json" hidden>
+  </div>
 </main>
 
 <footer class="colophon">

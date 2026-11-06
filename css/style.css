@@ -234,7 +234,8 @@ header.app a.lab:hover { color: var(--ink); }
 .blank .try .btn.quiet:hover { text-decoration: none; border-color: var(--ink-3); }
 
 .more { text-align: center; padding: 36px 0 0; }
-.clearline { max-width: 1480px; margin: 22px auto 0; text-align: right; }
+.pickline { max-width: 1480px; margin: 30px auto 0; padding-top: 14px; border-top: 1px solid var(--line-2); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
+.pickline .label { margin-right: auto; }
 
 /* ---- one image with its record ---- */
 .veil { position: fixed; inset: 0; background: rgba(29, 27, 24, .32); z-index: 100; }

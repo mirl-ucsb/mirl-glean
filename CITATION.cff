@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software in your research or teaching, please cite it as below."
+type: software
+title: "MIRL Glean: images gathered from open collections"
+abstract: >-
+  A no-build, local-first tool that sends one search to twenty-two open museum,
+  library, and archive collections at once (among them the Met, the Art
+  Institute of Chicago, the Rijksmuseum, Yale, the Library of Congress,
+  Europeana, Japan Search, and K-samsök) and returns one set of results with
+  every licence read into a plain rights state. Picked images keep their
+  records, Chicago citations, and a picks file the user holds; downloads come as
+  a zip whose manifest records each file's sha-256, source, retrieval time, and
+  rights. Thirty further collections with no open search API, among them JSTOR
+  through a library proxy and archives of the Arab world, open with the same
+  query. Arabic and right-to-left ready. Runs in the browser, no build.
+authors:
+  - family-names: "O'Brien"
+    given-names: "Jeff"
+    email: "jeffobrien@ucsb.edu"
+    affiliation: >-
+      Material / Image Research Lab, Department of History of Art &
+      Architecture, University of California, Santa Barbara
+version: "1.0.0"
+date-released: "2026-11-06"
+license: MIT
+repository-code: "https://github.com/mirl-ucsb/mirl-glean"
+url: "https://mirl-ucsb.github.io/mirl-glean/"
+keywords:
+  - art history
+  - image search
+  - open access
+  - museum collections
+  - cultural heritage
+  - IIIF
+  - digital humanities
+  - provenance
+  - minimal computing

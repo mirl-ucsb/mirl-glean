@@ -78,7 +78,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def _relay(self, url):
         if not allowed(url):
             return self._json(403, {"error": "host not on the relay allowlist"})
-        req = urllib.request.Request(url, headers={"User-Agent": "MIRL-Glean/0.1 (local relay)"})
+        req = urllib.request.Request(url, headers={"User-Agent": "MIRL-Glean/1.0 (local relay)"})
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
                 final = r.geturl()

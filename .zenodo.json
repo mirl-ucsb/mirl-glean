@@ -1,0 +1,36 @@
+{
+  "title": "MIRL Glean: images gathered from open collections",
+  "description": "A no-build, local-first tool that sends one search to twenty-two open museum, library, and archive collections at once and returns one set of results with every licence read into a plain rights state. Picked images keep their records, Chicago citations, and a picks file the user holds; downloads come as a zip whose manifest records each file's sha-256, source, retrieval time, and rights. Thirty further collections with no open search API, among them JSTOR through a library proxy and archives of the Arab world, open with the same query. Arabic and right-to-left ready.",
+  "creators": [
+    {
+      "name": "O'Brien, Jeff",
+      "affiliation": "Material / Image Research Lab, Department of History of Art & Architecture, University of California, Santa Barbara"
+    }
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "access_right": "open",
+  "keywords": [
+    "art history",
+    "digital humanities",
+    "cultural heritage",
+    "image search",
+    "open access",
+    "museum collections",
+    "IIIF",
+    "provenance",
+    "minimal computing"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/mirl-ucsb/mirl-glean",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://mirl-ucsb.github.io/mirl-glean/",
+      "relation": "isIdenticalTo",
+      "scheme": "url"
+    }
+  ]
+}

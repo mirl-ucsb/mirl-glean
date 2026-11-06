@@ -4,7 +4,7 @@
   const MI = window.MI;
   const $ = (s) => document.querySelector(s);
   const esc = MI.esc;
-  const VERSION = "0.1.0";
+  const VERSION = "1.0.0";
 
   /* ---------- settings and picks, kept in this browser only ---------- */
   const LS_CFG = "mirl-glean.cfg", LS_PICKS = "mirl-glean.picks";
@@ -235,7 +235,7 @@
   function renderPicks() {
     const n = picks.size;
     $("#pick-count").textContent = n ? String(n) : "";
-    ["#copy-cites", "#zip", "#clear-picks"].forEach((s) => ($(s).disabled = !n));
+    ["#copy-cites", "#zip", "#clear-picks", "#save-picks"].forEach((s) => ($(s).disabled = !n));
   }
 
   /* ---------- the print ---------- */
@@ -479,8 +479,41 @@
 
   $("#copy-cites").addEventListener("click", () => copyCites(Array.from(picks.values())));
   $("#zip").addEventListener("click", downloadPicks);
+  /* the picks file: one JSON file you keep, like every MIRL tool's working file.
+     It holds the picked records and their sources, never your API keys. */
+  $("#save-picks").addEventListener("click", () => {
+    const file = {
+      tool: "MIRL Glean", format: "mirl-glean-picks", version: 1, saved: new Date().toISOString(),
+      note: "Images picked in MIRL Glean, with the record each came from. Open it in MIRL Glean to pick up where you left off.",
+      items: Array.from(picks.values()),
+    };
+    MI.saveBlob(new Blob([JSON.stringify(file, null, 2)], { type: "application/json" }), `mirl-glean-picks-${new Date().toISOString().slice(0, 10)}.json`);
+    notice(`${file.items.length} pick${file.items.length === 1 ? "" : "s"} saved to a file. Open it here any time to carry on.`);
+  });
+  $("#open-picks").addEventListener("click", () => $("#picks-file").click());
+  $("#picks-file").addEventListener("change", async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      const items = Array.isArray(d) ? d : d && d.items;
+      if (!Array.isArray(items)) throw new Error("no picks in this file");
+      let added = 0;
+      items.forEach((r) => {
+        if (!r || !r.uid || !r.source || picks.has(r.uid)) return;
+        r.rights = r.rights && MI.RIGHTS[r.rights.state] ? r.rights : MI.rights("");
+        picks.set(r.uid, r); added++;
+      });
+      savePicks(); renderPicks(); setView("picked");
+      notice(added ? `${added} pick${added === 1 ? "" : "s"} added from ${f.name}.` : `Everything in ${f.name} is already in your picks.`);
+    } catch (err) {
+      notice(`That file could not be read as a MIRL Glean picks file (${err.message}).`);
+    }
+  });
+
   $("#clear-picks").addEventListener("click", () => {
-    if (!confirm(`Clear all ${picks.size} picks? This cannot be undone.`)) return;
+    if (!confirm(`Clear all ${picks.size} picks? This cannot be undone. Save them to a file first if you may want them again.`)) return;
     picks.clear(); savePicks(); renderPicks(); renderSheet();
   });
 

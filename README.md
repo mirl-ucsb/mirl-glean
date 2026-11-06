@@ -10,10 +10,42 @@ A no-build, local-first tool from the Material / Image Research Lab (MIRL),
 History of Art & Architecture, UC Santa Barbara. Nothing is uploaded. Searches go
 only to the sources you switch on; picks and keys stay in this browser.
 
-## Running it
+**Open the tool:** https://mirl-ucsb.github.io/mirl-glean/
 
-Open `index.html` in a browser. That is enough to search, cite, and download from
-most sources.
+## Using it
+
+You do not need to install anything or know how to code.
+
+1. **Search.** Open the tool and type a place, a maker, or a subject, then
+   press Search. Every collection ticked in the source list is asked at once,
+   and the results arrive on one page as each collection answers.
+2. **Narrow by rights.** Set Rights to *Open to reuse* or *Public domain* to see
+   only images you can reuse. Every result carries a tag saying what its
+   collection allows.
+3. **Look closer.** Click an image to see its full record: who made it, when,
+   where it is held, its rights statement, a link to the original record, and a
+   ready Chicago citation.
+4. **Pick.** Press *Pick* on any image you want to keep. *Picked* in the top bar
+   shows everything you have picked; picks stay in your browser between visits.
+5. **Keep your picks as a file.** *Save picks to a file*, at the foot of the
+   results, writes them to one file on your computer. *Open a picks file* brings
+   them back, on this computer or another.
+6. **Cite and download.** *Copy citations* copies a citation for every pick.
+   *Download picks* saves the images as a zip, with a manifest recording where
+   each came from, when, and under what terms, and a list of citations.
+7. **Search further.** Below the source list, the same search opens in
+   collections that cannot be searched from here, among them JSTOR through the
+   UCSB library proxy, the Arab Image Foundation, Akkasah, and the Palestinian
+   Museum Digital Archive.
+
+Your searches go to the collections you leave ticked, and nowhere else. Untick
+any you do not want asked before searching a name or place that should stay
+private.
+
+## Running it on your own computer
+
+Download the folder and open `index.html` in a browser. That is enough to
+search, cite, and download from most sources.
 
 Several hosts (among them the Met, Cleveland, the Internet Archive, the Science
 Museum Group, the David Rumsey Map Collection, and Japan Search) do not let a web
