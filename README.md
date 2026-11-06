@@ -1,6 +1,6 @@
-# MIRL Image
+# MIRL Glean
 
-A picture library across open collections. One search goes to the museums,
+Images gathered from open collections. One search goes to the museums,
 libraries, and archives that publish open collection APIs, and comes back as one
 set of results with every licence shown. Pick what you need, copy Chicago
 citations, and download the set as a zip whose manifest records each file's
@@ -88,7 +88,7 @@ publishing.
 
 ## Downloads and provenance
 
-Download picks writes `mirl-image-picks-<date>.zip` containing:
+Download picks writes `mirl-glean-picks-<date>.zip` containing:
 
 - `images/`: each file as received, numbered and named by source and title.
 - `manifest.json`: for each image, the sha-256 of the bytes received, size,

@@ -1,4 +1,4 @@
-/* MIRL Image · shared apparatus: rights, citations, hashing, zip.
+/* MIRL Glean · shared apparatus: rights, citations, hashing, zip.
    Classic script, no build. Everything hangs off window.MI. */
 (function () {
   "use strict";

@@ -1,4 +1,4 @@
-/* MIRL Image · the desk: search, the contact sheet, the print, picks, downloads. */
+/* MIRL Glean · the desk: search, the contact sheet, the print, picks, downloads. */
 (function () {
   "use strict";
   const MI = window.MI;
@@ -7,7 +7,15 @@
   const VERSION = "0.1.0";
 
   /* ---------- settings and picks, kept in this browser only ---------- */
-  const LS_CFG = "mirl-image.cfg", LS_PICKS = "mirl-image.picks";
+  const LS_CFG = "mirl-glean.cfg", LS_PICKS = "mirl-glean.picks";
+  /* carry settings and picks across from the tool's earlier name, MIRL Image */
+  try {
+    [["mirl-image.cfg", LS_CFG], ["mirl-image.picks", LS_PICKS]].forEach(([o, n]) => {
+      const v = localStorage.getItem(o);
+      if (v != null && localStorage.getItem(n) == null) localStorage.setItem(n, v);
+      if (v != null) localStorage.removeItem(o);
+    });
+  } catch (e) {}
   const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.getItem(k) || "{}")); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -353,7 +361,7 @@
     }
     const got = items.filter((x) => x.file).length;
     const manifest = {
-      tool: "MIRL Image", version: VERSION, created: new Date().toISOString(),
+      tool: "MIRL Glean", version: VERSION, created: new Date().toISOString(),
       note: "sha256 is of the bytes as received from image_url at the time retrieved. Rights labels are read from each source's metadata; confirm at the record before reuse.",
       citation_style: cfg.cite === "nb" ? "Chicago notes-bibliography" : "Chicago author-date",
       count: items.length, fetched: got, items,
@@ -361,7 +369,7 @@
     files.push({ name: "manifest.json", data: enc.encode(JSON.stringify(manifest, null, 2)) });
     files.push({ name: "citations.txt", data: enc.encode(items.map((x) => x.citation_chicago).join("\n\n") + "\n") });
     const stamp = new Date().toISOString().slice(0, 10);
-    MI.saveBlob(MI.zip(files), `mirl-image-picks-${stamp}.zip`);
+    MI.saveBlob(MI.zip(files), `mirl-glean-picks-${stamp}.zip`);
     btn.textContent = "Download picks";
     btn.disabled = false;
     notice(got === items.length

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MIRL Image: a local server with an image relay.
+"""MIRL Glean: a local server with an image relay.
 
 Serves this folder at http://127.0.0.1:8796 and adds one route,
 /__mirl/fetch?url=..., which fetches an image from an allowlisted collection
@@ -78,7 +78,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def _relay(self, url):
         if not allowed(url):
             return self._json(403, {"error": "host not on the relay allowlist"})
-        req = urllib.request.Request(url, headers={"User-Agent": "MIRL-Image/0.1 (local relay)"})
+        req = urllib.request.Request(url, headers={"User-Agent": "MIRL-Glean/0.1 (local relay)"})
         try:
             with urllib.request.urlopen(req, timeout=60) as r:
                 final = r.geturl()
@@ -109,12 +109,12 @@ if __name__ == "__main__":
         srv = Server(("127.0.0.1", PORT), Handler)
     except OSError as e:
         if e.errno in (48, 98):  # address already in use (macOS, Linux)
-            sys.exit(f"Port {PORT} is already in use. MIRL Image may already be running: "
+            sys.exit(f"Port {PORT} is already in use. MIRL Glean may already be running: "
                      f"open http://127.0.0.1:{PORT}, or start on another port with "
                      f"python3 serve.py {PORT + 1}")
         raise
     with srv as s:
-        print(f"MIRL Image at http://127.0.0.1:{PORT}  (Ctrl-C to stop)")
+        print(f"MIRL Glean at http://127.0.0.1:{PORT}  (Ctrl-C to stop)")
         try:
             s.serve_forever()
         except KeyboardInterrupt:

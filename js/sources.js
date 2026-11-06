@@ -1,4 +1,4 @@
-/* MIRL Image · the sources.
+/* MIRL Glean · the sources.
    Each adapter queries one open collection API and folds its answer into the
    common record:
 
