@@ -46,7 +46,12 @@
   /* ---------- the register ---------- */
   function renderRoll() {
     const roll = $("#roll");
-    roll.innerHTML = MI.SOURCES.map((s) => {
+    const KINDS = [["museum", "Museums"], ["library", "Libraries and archives"], ["aggregator", "Aggregators"], ["commons", "Open commons"]];
+    const ordered = KINDS.flatMap(([k]) => MI.SOURCES.filter((s) => s.kind === k));
+    let lastKind = "";
+    roll.innerHTML = ordered.map((s) => {
+      const head = s.kind !== lastKind ? `<div class="kind">${esc((KINDS.find((k) => k[0] === s.kind) || [, ""])[1])}</div>` : "";
+      lastKind = s.kind;
       const r = state.results[s.id];
       const can = usable(s), on = can && !cfg.off[s.id];
       let st = "", why = "";
@@ -62,11 +67,11 @@
       } else if (r && r.status === "ok") {
         if (!r.total) st = "no matches";
         else if (!r.items.length) { st = "none with images"; why = `${s.name} matched ${r.total.toLocaleString()} records, but none in this batch has an image it shares openly (often because the works are in copyright).`; }
-        else st = `${r.items.length} of ${r.total.toLocaleString()}`;
+        else st = r.estimate ? `${r.items.length}${r.more ? "+" : ""}` : `${r.items.length} of ${r.total.toLocaleString()}`;
       }
       if (!/class="st/.test(st)) st = `<span class="st">${st}</span>`;
       const tip = why || (s.key && !can ? "Add a key in Keys and settings to search " + s.name : on ? "Click to leave " + s.name + " out" : "Click to include " + s.name);
-      return `<button type="button" class="src ${on ? "" : "off"}" data-src="${s.id}" title="${esc(tip)}" ${can ? "" : "data-needkey"}>
+      return head + `<button type="button" class="src ${on ? "" : "off"}" data-src="${s.id}" title="${esc(tip)}" ${can ? "" : "data-needkey"}>
         <span class="tick" aria-hidden="true"></span><span class="nm">${esc(s.name)}</span>${st}</button>`;
     }).join("");
     roll.classList.toggle("hidden", !!cfg.rollHidden);
@@ -78,9 +83,11 @@
   function renderShelf() {
     const q = state.q || $("#q").value.trim();
     const links = MI.LINKOUTS.filter((l) => !l.whenNoKey || !cfg.keys[l.whenNoKey]);
-    $("#shelf").innerHTML = `<span class="label">Also search, signed in, in a new tab</span>` + (q
-      ? links.map((l) => `<a href="${esc(l.url(q, cfg))}" target="_blank" rel="noopener noreferrer" title="${esc(l.note || "Opens " + l.name + " in a new tab")}">${esc(l.name)}</a>`).join("")
-      : `<span class="note">JSTOR (through the UCSB proxy), the British Museum, the Getty, and others appear here once you search.</span>`);
+    const groups = [...new Set(links.map((l) => l.group))];
+    $("#shelf").innerHTML = `<h3>Also search, signed in, in a new tab</h3>` + (q
+      ? groups.map((g) => `<div class="shelfrow"><span class="label">${esc(g)}</span><span class="links">` +
+          links.filter((l) => l.group === g).map((l) => `<a href="${esc(l.url(q, cfg))}" target="_blank" rel="noopener noreferrer" title="${esc(l.note || "Opens " + l.name + " in a new tab")}">${esc(l.name)}</a>`).join("") + `</span></div>`).join("")
+      : `<p class="note">${links.length} more collections with no open search API, among them JSTOR (through the UCSB proxy), the Arab Image Foundation, Akkasah, the Palestinian Museum Digital Archive, the British Museum, and the Louvre, appear here once you search.</p>`);
   }
 
   function renderSum() {
@@ -116,7 +123,7 @@
         const res = await s.search(q, page, n, cfg);
         if (run !== state.runs) return;
         const r = state.results[s.id];
-        r.items = r.items.concat(res.items); r.total = res.total; r.more = res.more; r.status = "ok";
+        r.items = r.items.concat(res.items); r.total = res.total; r.more = res.more; r.estimate = !!res.estimate; r.status = "ok";
         r.ms = Math.round(performance.now() - t0);
       } catch (e) {
         if (run !== state.runs) return;
@@ -163,7 +170,7 @@
       } else if (!state.q) {
         const tries = ["Beirut", "Bonfils", "albumen print", "Chumash basket", "Gaza", "Palmyra", "حروفية"];
         sheet.innerHTML = `<div class="blank"><div class="big">Start with a search.</div>
-          <p>One query goes to the Met, the Art Institute of Chicago, Cleveland, the V&amp;A, the Rijksmuseum, SMK, the Library of Congress, Wellcome, the Smithsonian, Europeana, the Internet Archive, and Wikimedia Commons, and comes back as one set of results with every licence shown.</p>
+          <p>One query goes to ${active().length} open collections at once (museums from the Met to Te Papa, national libraries and archives, the aggregators of Europe, Sweden, and Japan, and the open commons) and comes back as one set of results with every licence shown.</p>
           <div class="try">${tries.map((t) => `<button type="button" class="btn quiet" data-try="${esc(t)}" dir="auto">${esc(t)}</button>`).join("")}</div></div>`;
       } else {
         sheet.innerHTML = `<div class="blank"><div class="big">${busy ? "The sources are answering…" : "Nothing came back" + (cfg.rights !== "all" ? " under this rights filter." : ".")}</div>${!busy && cfg.rights !== "all" ? `<p>Set Rights to All to see images under other terms.</p>` : ""}</div>`;
@@ -390,7 +397,7 @@
       <div class="field"><label for="cite">Citation style</label>
         <select id="cite"><option value="ad" ${cfg.cite === "ad" ? "selected" : ""}>Chicago author-date</option><option value="nb" ${cfg.cite === "nb" ? "selected" : ""}>Chicago notes-bibliography</option></select></div>
       <h3>Downloads</h3>
-      <p>${MI.relay ? "The local relay is running: images from hosts that refuse page downloads (the Met, Cleveland, the Internet Archive) are fetched through it." : "Opened as a file, most images download directly, but the Met, Cleveland, and the Internet Archive refuse page downloads. Start <code>python3 serve.py</code> in this folder and open <code>http://127.0.0.1:8796</code> to fetch those too, through a relay on your own machine."}</p>
+      <p>${MI.relay ? "The local relay is running: images from hosts that refuse page downloads (the Met, Cleveland, the Internet Archive, the Science Museum Group, Rumsey, Japan Search, and others) are fetched through it." : "Opened as a file, most images download directly, but several hosts (the Met, Cleveland, the Internet Archive, the Science Museum Group, Rumsey, Japan Search) refuse page downloads. Start <code>python3 serve.py</code> in this folder and open <code>http://127.0.0.1:8796</code> to fetch those too, through a relay on your own machine."}</p>
       <h3>Sensitive searches</h3>
       <p>A search is sent, as typed, to every source switched on in the register. Switch sources off there before searching a name or place that should not leave this machine.</p>`;
   }

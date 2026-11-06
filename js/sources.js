@@ -326,6 +326,253 @@
     },
   });
 
+  /* ---------------- more museums ---------------- */
+
+  const arr = (v) => (v == null ? [] : Array.isArray(v) ? v : [v]);
+
+  S.push({
+    id: "mia", name: "Minneapolis Institute of Art", short: "Mia", institution: "Minneapolis Institute of Art", kind: "museum", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://search.artsmia.org/${enc(q)}?size=${n}&from=${(page - 1) * n}`);
+      const h = d.hits || {};
+      const total = typeof h.total === "object" ? h.total.value : h.total || 0;
+      const items = (h.hits || []).map((x) => x._source || {}).filter((o) => o.image === "valid" && o.public_access !== 0).map((o) => {
+        const host = `https://${o.id % 7}.api.artsmia.org`;
+        return rec({
+          source: "mia", id: o.id, title: o.title, maker: plainMaker(o.artist), date: o.dated, medium: o.medium, kind: o.classification,
+          thumb: `${host}/400/${o.id}.jpg`, full: `${host}/800/${o.id}.jpg`,
+          link: `https://collections.artsmia.org/art/${o.id}`, institution: this.institution, accession: o.accession_number, credit: o.creditline,
+          rights: rights(o.rights_type || o.image_copyright || "", o.rights_type || undefined),
+        });
+      });
+      return { items, total, more: page * n < total };
+    },
+  });
+
+  S.push({
+    id: "princeton", name: "Princeton University Art Museum", short: "Princeton", institution: "Princeton University Art Museum", kind: "museum", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://data.artmuseum.princeton.edu/search?q=${enc(q)}&type=artobjects&size=${n}&from=${(page - 1) * n}`);
+      const h = d.hits || {};
+      const total = typeof h.total === "object" ? h.total.value : h.total || 0;
+      const items = (h.hits || []).map((x) => x._source || {}).filter((o) => arr(o.primaryimage).length).map((o) => {
+        const b = arr(o.primaryimage)[0];
+        return rec({
+          source: "princeton", id: o.objectid, title: o.displaytitle, maker: siMaker(o.displaymaker), date: o.displaydate, medium: o.medium,
+          thumb: b + "/full/400,/0/default.jpg", full: b + "/full/2000,/0/default.jpg",
+          link: `https://artmuseum.princeton.edu/collections/objects/${o.objectid}`, institution: this.institution,
+          accession: o.objectnumber, credit: o.creditline, rights: rights("", "see museum image terms"),
+        });
+      });
+      return { items, total, more: page * n < total };
+    },
+  });
+
+  S.push({
+    id: "lux", name: "Yale (LUX)", short: "Yale", institution: "Yale University", kind: "museum", on: true,
+    async search(q, page, n) {
+      const query = JSON.stringify({ AND: [{ text: q }, { hasDigitalImage: 1 }] });
+      const d = await getJSON(`https://lux.collections.yale.edu/api/search/item?q=${enc(query)}&page=${page}&pageLength=${n}`);
+      const ids = (d.orderedItems || []).map((x) => x.id);
+      const objs = await pool(ids, 6, (id) => getJSON(id));
+      const items = objs.filter(Boolean).map((o) => { try { return this.parse(o); } catch (e) { return null; } }).filter((r) => r && r.thumb);
+      /* LUX reports its total on a separate estimate call; a full page means there is more */
+      return { items, total: ids.length < n ? (page - 1) * n + ids.length : page * n + 1, more: ids.length === n, estimate: true };
+    },
+    parse(o) {
+      const names = arr(o.identified_by).filter((x) => x && x.type === "Name");
+      const prod = o.produced_by || o.created_by || {};
+      const agents = arr(prod.carried_out_by).concat(...arr(prod.part).map((p) => arr(p && p.carried_out_by)));
+      const ts = prod.timespan || (arr(prod.part).find((p) => p && p.timespan) || {}).timespan || {};
+      let img = "";
+      for (const rep of arr(o.representation)) for (const dob of arr(rep.digitally_shown_by)) for (const ap of arr(dob.access_point)) if (!img && ap.id) img = ap.id;
+      if (!img) return null;
+      const unit = arr(o.member_of).map((m) => m._label).filter(Boolean)[0] || "";
+      return rec({
+        source: "lux", id: o.id.split("/").pop(), title: (names[0] && names[0].content) || o._label, maker: (agents[0] && agents[0]._label) || "",
+        date: (arr(ts.identified_by)[0] || {}).content || "",
+        thumb: img, full: img.replace(/\/full\/![0-9]+,[0-9]+\//, "/full/!2000,2000/"),
+        link: o.id.replace("/data/", "/view/"), institution: unit ? `${unit}, Yale University` : "Yale University",
+        accession: (arr(o.identified_by).find((x) => x && x.type === "Identifier") || {}).content || "",
+        rights: rights("", "see Yale image terms"),
+      });
+    },
+  });
+
+  S.push({
+    id: "smg", name: "Science Museum Group", short: "Science Museum", institution: "Science Museum Group, London", kind: "museum", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://collection.sciencemuseumgroup.org.uk/search/images?q=${enc(q)}&page%5Bnumber%5D=${page - 1}&page%5Bsize%5D=${n}`, { headers: { Accept: "application/json" } });
+      const base = "https://coimages.sciencemuseumgroup.org.uk/";
+      const items = (d.data || []).map((x) => {
+        const a = x.attributes || {};
+        const mm = arr(a.multimedia).find((m) => m && m["@processed"]);
+        if (!mm) return null;
+        const p = mm["@processed"];
+        const pick = (...ks) => { for (const k of ks) if (p[k] && p[k].location) return base + p[k].location; return ""; };
+        const cr = a.creation || {};
+        const maker = arr(cr.maker).map((m) => (m.summary && m.summary.title) || (arr(m.name)[0] || {}).value).filter(Boolean)[0] || "";
+        return rec({
+          source: "smg", id: x.id, title: (arr(a.title)[0] || {}).value || (a.summary && a.summary.title), maker,
+          date: (arr(cr.date)[0] || {}).value || "", kind: (arr(a.name)[0] || {}).value || "",
+          thumb: pick("medium_thumbnail", "small_thumbnail", "medium", "large"), full: pick("large", "medium"),
+          link: (x.links && x.links.self) || "", institution: this.institution, accession: (arr(a.identifier)[0] || {}).value || x.id,
+          rights: rights("by-nc-sa", "CC BY-NC-SA 4.0 (Science Museum Group)", "https://creativecommons.org/licenses/by-nc-sa/4.0/"),
+        });
+      }).filter(Boolean);
+      const m = d.meta || {};
+      const total = (m.count && m.count.type && m.count.type.all) || 0;
+      return { items, total, more: page < (m.total_pages || 0) };
+    },
+  });
+
+  /* ---------------- maps ---------------- */
+
+  S.push({
+    id: "rumsey", name: "David Rumsey Map Collection", short: "Rumsey", institution: "David Rumsey Map Collection, Stanford University", kind: "library", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://www.davidrumsey.com/luna/servlet/as/search?q=${enc(q)}&os=${(page - 1) * n}&bs=${n}`);
+      const total = +d.totalResults || 0;
+      const items = (d.results || []).filter((o) => o.urlSize2).map((o) => {
+        const f = {};
+        arr(o.fieldValues).forEach((fv) => Object.entries(fv).forEach(([k, v]) => { if (!f[k]) f[k] = arr(v)[0]; }));
+        return rec({
+          source: "rumsey", id: o.id, title: f["Short Title"] || o.displayName, maker: f["Author"] || f["Publisher"] || "",
+          date: f["Date"] || f["Pub Date"] || "", kind: f["Type"] || "Map",
+          thumb: o.urlSize2, full: o.urlSize4 || o.urlSize3 || o.urlSize2,
+          link: `https://www.davidrumsey.com/luna/servlet/detail/${o.id}`, institution: this.institution, accession: f["List No"] || o.id,
+          rights: rights("by-nc-sa", "CC BY-NC-SA 3.0 (David Rumsey Map Collection)", "https://creativecommons.org/licenses/by-nc-sa/3.0/"),
+        });
+      });
+      return { items, total, more: page * n < total };
+    },
+  });
+
+  /* ---------------- national aggregators ---------------- */
+
+  S.push({
+    id: "jps", name: "Japan Search", institution: "", kind: "aggregator", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://jpsearch.go.jp/api/item/search/jps-cross?keyword=${enc(q)}&size=${n}&from=${(page - 1) * n}&f-contents=thumb`);
+      const R = { pdm: "pd", cc0: "pd", ccby: "open", ccbysa: "open", incr: "reserved" };
+      const items = (d.list || []).map((x) => {
+        const c = x.common || {};
+        const thumb = arr(c.thumbnailUrl)[0];
+        if (!thumb) return null;
+        const code = String(c.contentsRightsType || "").toLowerCase();
+        const st = R[code] || (/nc|nd|noncom|edu/.test(code) ? "cond" : "unknown");
+        return rec({
+          source: "jps", id: x.id, title: c.title, maker: arr(c.contributor)[0] || "", date: arr(c.temporal).filter((t) => /\d{3,4}/.test(t)).pop() || arr(c.temporal)[0] || "",
+          kind: arr(c.category)[0] || "", thumb, full: thumb, iiif: c.iiifUrl || "",
+          link: c.linkUrl || `https://jpsearch.go.jp/item/${x.id}`, institution: (c.ownerOrg ? c.ownerOrg.toUpperCase() + " " : "") + "(via Japan Search)",
+          accession: x.id, rights: { state: st, label: code ? "Japan Search rights code: " + code : MI.RIGHTS.unknown.label, url: "" },
+        });
+      }).filter(Boolean);
+      return { items, total: d.hit || 0, more: page * n < (d.hit || 0) };
+    },
+    async resolveFull(r) { return (r.iiif && (await MI.iiifFirstImage(r.iiif, 2400))) || r.thumb; },
+  });
+
+  S.push({
+    id: "ksamsok", name: "K-samsök (Sweden)", short: "K-samsök", institution: "", kind: "aggregator", on: true,
+    async search(q, page, n) {
+      const query = `text="${q.replace(/"/g, "")}" and thumbnailExists=j`;
+      const d = await getJSON(`https://kulturarvsdata.se/ksamsok/api?method=search&hitsPerPage=${n}&startRecord=${(page - 1) * n + 1}&query=${enc(query)}&x-api=test`, { headers: { Accept: "application/json" } });
+      const res = d.result || {};
+      const dp = new DOMParser();
+      const tx = (doc, tag) => { const el = doc.getElementsByTagNameNS("*", tag)[0]; return el ? clean(el.textContent) : ""; };
+      /* the namespace prefix varies from record to record (ns1:, ksam:), so match the local name */
+      const pk = (o, local) => { const k = Object.keys(o || {}).find((k) => k.endsWith(":" + local)); return k ? o[k] : undefined; };
+      const val = (v) => (v && typeof v === "object" ? v["@value"] || v["@id"] || "" : v || "");
+      const items = arr(res.records).map((r) => {
+        const g = arr(r.record && r.record["@graph"]);
+        const ent = g.find((x) => pk(x, "presentation")) || {};
+        const xml = val(pk(ent, "presentation"));
+        if (!xml) return null;
+        const doc = dp.parseFromString(xml, "application/xml");
+        const srcs = Array.from(doc.getElementsByTagNameNS("*", "src"));
+        const src = (t) => (srcs.find((s) => s.getAttribute("type") === t) || {}).textContent || "";
+        const thumb = src("lowres") || src("thumbnail");
+        if (!thumb) return null;
+        const reps = Array.from(doc.getElementsByTagNameNS("*", "representation"));
+        const html = reps.find((e) => /html/i.test(e.getAttribute("format") || ""));
+        const lic = tx(doc, "mediaLicenseUrl") || val(pk(ent, "itemLicenseUrl")) || "";
+        const org = val(pk(ent, "serviceOrganizationFull"));
+        return rec({
+          source: "ksamsok", id: tx(doc, "entityUri") || tx(doc, "id"), title: tx(doc, "itemLabel"), maker: tx(doc, "nameLabel").replace(/^[^:]{1,40}:\s*/, "") || tx(doc, "byline"),
+          date: tx(doc, "timeLabel") || tx(doc, "fromTime"), kind: tx(doc, "type"),
+          thumb, full: src("highres") || thumb, link: (html && clean(html.textContent)) || tx(doc, "entityUri"),
+          institution: org ? org + " (via K-samsök)" : "K-samsök, Swedish National Heritage Board",
+          accession: tx(doc, "idLabel"), rights: rights(lic, undefined, lic),
+        });
+      }).filter(Boolean);
+      return { items, total: res.totalHits || 0, more: page * n < (res.totalHits || 0) };
+    },
+  });
+
+  S.push({
+    id: "harvardlib", name: "Harvard Library", institution: "Harvard Library", kind: "library", on: true,
+    async search(q, page, n) {
+      const d = await getJSON(`https://api.lib.harvard.edu/v2/items.json?q=${enc(q)}&limit=${n}&start=${(page - 1) * n}&resourceType=still%20image&isOnline=true`);
+      const mods = arr(d.items && d.items.mods);
+      const txt = (v) => { v = arr(v)[0]; return v == null ? "" : typeof v === "object" ? v["#text"] || "" : String(v); };
+      const items = mods.map((m) => {
+        /* every url in the record, wherever MODS nests it */
+        const urls = [];
+        const walk = (x) => {
+          if (!x || typeof x !== "object") return;
+          if (Array.isArray(x)) return x.forEach(walk);
+          if (x.url) arr(x.url).forEach((u) => urls.push(typeof u === "object" ? u : { "#text": u }));
+          Object.entries(x).forEach(([k, v]) => { if (k !== "url") walk(v); });
+        };
+        walk(m.location); walk(m.relatedItem);
+        const pv = urls.find((u) => u["@access"] === "preview");
+        if (!pv) return null;
+        const raw = urls.find((u) => u["@access"] === "raw object");
+        const ctx = urls.find((u) => u["@access"] === "object in context");
+        const ti = arr(m.titleInfo)[0] || {};
+        const nm = arr(m.name)[0] || {};
+        const oi = arr(m.originInfo)[0] || {};
+        const restricted = raw && /restricted/i.test(raw["@note"] || "");
+        const id = txt((arr(m.recordInfo)[0] || {}).recordIdentifier);
+        return rec({
+          source: "harvardlib", id: id || pv["#text"], title: txt(ti.title), maker: txt(nm.namePart), date: txt(oi.dateCreated) || txt(oi.dateOther) || txt(oi.dateIssued),
+          thumb: pv["#text"].replace(/width=\d+&height=\d+/, "width=400&height=400"),
+          /* a restricted full image needs a Harvard sign-in; the public preview is what can be saved */
+          full: raw && !restricted ? raw["#text"] : pv["#text"].replace(/width=\d+&height=\d+/, "width=1200&height=1200"),
+          link: (ctx && ctx["#text"]) || (raw && raw["#text"]) || pv["#text"], institution: this.institution, accession: id,
+          rights: restricted ? rights("rights reserved", "full image restricted to Harvard users") : rights(txt(m.accessCondition), txt(m.accessCondition) || undefined),
+        });
+      }).filter(Boolean);
+      const total = +((d.pagination || {}).numFound) || 0;
+      return { items, total, more: page * n < Math.min(total, 10000) };
+    },
+  });
+
+  /* Openverse indexes openly licensed images from many institutions; asked here only
+     for collections not already searched directly above, so results do not double */
+  const OV_NAMES = {
+    brooklynmuseum: "Brooklyn Museum", museumsvictoria: "Museums Victoria", digitaltmuseum: "DigitaltMuseum (Norway and Sweden)",
+    finnish_heritage_agency: "Finnish Heritage Agency", finnish_satakunnan_museum: "Satakunta Museum", national_museum_of_finland: "National Museum of Finland",
+    nypl: "New York Public Library", bib_gulbenkian: "Biblioteca de Arte, Calouste Gulbenkian Foundation", flickr: "Flickr",
+  };
+  const openverse = (id, name, sources, kind) => ({
+    id, name, institution: "", kind, on: true,
+    async search(q, page, n) {
+      const size = Math.min(n, 20);
+      const d = await getJSON(`https://api.openverse.org/v1/images/?q=${enc(q)}&source=${sources}&page_size=${size}&page=${page}`);
+      const items = (d.results || []).map((o) => rec({
+        source: id, id: o.id, title: o.title, maker: o.creator || "", kind: o.category || "",
+        thumb: o.thumbnail || o.url, full: o.url, link: o.foreign_landing_url || o.url,
+        institution: (OV_NAMES[o.source] || o.source) + (o.source === "flickr" ? "" : " (via Openverse)"), accession: o.id,
+        rights: rights((o.license || "") + " " + (o.license_url || ""), o.license ? ("CC " + o.license.toUpperCase() + " " + (o.license_version || "")).replace("CC PDM", "Public Domain Mark").replace("CC CC0", "CC0").trim() : undefined, o.license_url),
+      }));
+      return { items, total: d.result_count || 0, more: page < (d.page_count || 0) };
+    },
+  });
+  S.push(openverse("openverse", "Openverse (Brooklyn, NYPL, Nordic, more)", "brooklynmuseum,museumsvictoria,digitaltmuseum,finnish_heritage_agency,finnish_satakunnan_museum,national_museum_of_finland,nypl,bib_gulbenkian", "aggregator"));
+  S.push(openverse("flickr", "Flickr (open licences)", "flickr", "commons"));
+
   /* ---------------- keyed sources: off until a key is pasted in ---------------- */
 
   S.push({
@@ -363,6 +610,29 @@
     },
   });
 
+
+  S.push({
+    id: "tepapa", name: "Te Papa", institution: "Museum of New Zealand Te Papa Tongarewa", kind: "museum", on: true,
+    key: { name: "Te Papa API key", required: true, help: "https://data.tepapa.govt.nz/docs/", note: "Free; register on Te Papa's developer site." },
+    async search(q, page, n, cfg) {
+      const d = await getJSON(`https://data.tepapa.govt.nz/collection/search?q=${enc(q)}&size=${n}&from=${(page - 1) * n}`, { headers: { "x-api-key": cfg.keys.tepapa, Accept: "application/json" } });
+      const items = (d.results || []).map((o) => {
+        const rep = arr(o.hasRepresentation).find((r) => r && (r.previewUrl || r.thumbnailUrl));
+        if (!rep) return null;
+        const pr = arr(o.production)[0] || {};
+        const rt = rep.rights || {};
+        return rec({
+          source: "tepapa", id: o.id, title: o.title, maker: (pr.contributor && pr.contributor.title) || "", date: pr.verbatimCreatedDate || pr.createdDate || "",
+          kind: o.type, thumb: rep.previewUrl || rep.thumbnailUrl, full: rt.allowsDownload ? rep.contentUrl || rep.previewUrl : rep.previewUrl,
+          link: `https://collections.tepapa.govt.nz/object/${o.id}`, institution: this.institution, accession: o.identifier, credit: o.creditLine || "",
+          rights: rights((rt.title || "") + " " + (rt.iri || ""), rt.title || undefined, rt.iri),
+        });
+      }).filter(Boolean);
+      const total = ((d._metadata || {}).resultset || {}).count || 0;
+      return { items, total, more: page * n < total };
+    },
+  });
+
   MI.SOURCES = S;
   MI.source = (id) => S.find((s) => s.id === id);
 
@@ -370,17 +640,43 @@
      No public search API, or behind a sign-in. The query is carried across;
      the page opens in your browser, where you are already signed in. */
   MI.LINKOUTS = [
+    /* subscription */
     {
-      /* JSTOR's own search; narrow it to Images with the content-type filter there */
-      id: "jstor", name: "JSTOR", note: "Opens through the UCSB library proxy; choose Images under content type to see Artstor collections",
+      group: "Subscription", id: "jstor", name: "JSTOR", note: "Opens through the UCSB library proxy; choose Images under content type to see Artstor collections",
       url: (q, cfg) => (cfg.proxy || "") + "https://www.jstor.org/action/doBasicSearch?Query=" + enc(q) + "&so=rel",
     },
-    { id: "bm", name: "British Museum", url: (q) => "https://www.britishmuseum.org/collection/search?keyword=" + enc(q) + "&image=true" },
-    { id: "getty", name: "Getty Museum", url: (q) => "https://www.getty.edu/art/collection/search?q=" + enc(q) },
-    { id: "nga", name: "National Gallery of Art", url: (q) => "https://www.nga.gov/artworks/free-search?keyword=" + enc(q) },
-    { id: "calisphere", name: "Calisphere", url: (q) => "https://calisphere.org/search/?q=" + enc(q) },
-    { id: "harvard-web", name: "Harvard Art Museums", whenNoKey: "harvard", url: (q) => "https://harvardartmuseums.org/collections?q=" + enc(q) },
-    { id: "dpla-web", name: "DPLA", whenNoKey: "dpla", url: (q) => "https://dp.la/search?q=" + enc(q) + "&type=%22image%22" },
-    { id: "nypl", name: "NYPL Digital Collections", url: (q) => "https://digitalcollections.nypl.org/search/index?keywords=" + enc(q) },
+    /* the Arab world and the wider region */
+    { group: "Middle East and North Africa", id: "aif", name: "Arab Image Foundation", url: (q) => "https://arabimagefoundation.org/search?q=" + enc(q) },
+    { group: "Middle East and North Africa", id: "akkasah", name: "Akkasah (NYU Abu Dhabi)", url: (q) => "https://akkasah.org/?s=" + enc(q) },
+    { group: "Middle East and North Africa", id: "pma", name: "Palestinian Museum Digital Archive", url: (q) => "https://palarchive.org/index.php/Search/objects?search=" + enc(q) },
+    { group: "Middle East and North Africa", id: "qdl", name: "Qatar Digital Library", url: (q) => "https://www.qdl.qa/en/search/site/" + enc(q) },
+    { group: "Middle East and North Africa", id: "aub", name: "AUB Libraries", url: (q) => "https://libraries.aub.edu.lb/blacklight/?q=" + enc(q) },
+    { group: "Middle East and North Africa", id: "archnet", name: "Archnet (search there)", note: "Archnet does not accept a search from a link; this opens its search page", url: () => "https://www.archnet.org/search" },
+    { group: "Middle East and North Africa", id: "eap", name: "Endangered Archives Programme", url: (q) => "https://eap.bl.uk/search?query=" + enc(q) },
+    /* museums without an open search API */
+    { group: "Museums", id: "bm", name: "British Museum", url: (q) => "https://www.britishmuseum.org/collection/search?keyword=" + enc(q) + "&image=true" },
+    { group: "Museums", id: "louvre", name: "Louvre", url: (q) => "https://collections.louvre.fr/en/recherche?q=" + enc(q) },
+    { group: "Museums", id: "getty", name: "Getty Museum", url: (q) => "https://www.getty.edu/art/collection/search?q=" + enc(q) },
+    { group: "Museums", id: "nga", name: "National Gallery of Art", url: (q) => "https://www.nga.gov/artworks/free-search?keyword=" + enc(q) },
+    { group: "Museums", id: "tate", name: "Tate", url: (q) => "https://www.tate.org.uk/search?q=" + enc(q) },
+    { group: "Museums", id: "moma", name: "MoMA", url: (q) => "https://www.moma.org/collection/?q=" + enc(q) },
+    { group: "Museums", id: "prado", name: "Prado", url: (q) => "https://www.museodelprado.es/en/the-collection/art-works?search=" + enc(q) },
+    { group: "Museums", id: "parismusees", name: "Paris Musées", url: (q) => "https://www.parismuseescollections.paris.fr/en/recherche/type/oeuvre?keys=" + enc(q) },
+    { group: "Museums", id: "smb", name: "Staatliche Museen zu Berlin", url: (q) => "https://recherche.smb.museum/?language=en&question=" + enc(q) },
+    { group: "Museums", id: "mkg", name: "MK&G Hamburg", url: (q) => "https://sammlungonline.mkg-hamburg.de/en/search?s=" + enc(q) },
+    { group: "Museums", id: "harvard-web", name: "Harvard Art Museums", whenNoKey: "harvard", url: (q) => "https://harvardartmuseums.org/collections?q=" + enc(q) },
+    { group: "Museums", id: "tepapa-web", name: "Te Papa", whenNoKey: "tepapa", url: (q) => "https://collections.tepapa.govt.nz/search/" + enc(q) },
+    /* libraries, archives, and national aggregators */
+    { group: "Libraries and archives", id: "calisphere", name: "Calisphere", url: (q) => "https://calisphere.org/search/?q=" + enc(q) },
+    { group: "Libraries and archives", id: "oac", name: "Online Archive of California", url: (q) => "https://oac.cdlib.org/search?query=" + enc(q) },
+    { group: "Libraries and archives", id: "dpla-web", name: "DPLA", whenNoKey: "dpla", url: (q) => "https://dp.la/search?q=" + enc(q) + "&type=%22image%22" },
+    { group: "Libraries and archives", id: "nypl", name: "NYPL Digital Collections", url: (q) => "https://digitalcollections.nypl.org/search/index?keywords=" + enc(q) },
+    { group: "Libraries and archives", id: "gallica", name: "Gallica (BnF)", url: (q) => "https://gallica.bnf.fr/services/engine/search/sru?operation=searchRetrieve&version=1.2&query=" + enc('(gallica all "' + q + '")') },
+    { group: "Libraries and archives", id: "bodleian", name: "Digital Bodleian", url: (q) => "https://digital.bodleian.ox.ac.uk/search/?q=" + enc(q) },
+    { group: "Libraries and archives", id: "ddb", name: "Deutsche Digitale Bibliothek", url: (q) => "https://www.deutsche-digitale-bibliothek.de/searchresults?query=" + enc(q) + "&isThumbnailFiltered=true" },
+    { group: "Libraries and archives", id: "finna", name: "Finna (Finland)", url: (q) => "https://www.finna.fi/Search/Results?lookfor=" + enc(q) },
+    { group: "Libraries and archives", id: "trove", name: "Trove (Australia)", url: (q) => "https://trove.nla.gov.au/search/category/images?keyword=" + enc(q) },
+    { group: "Libraries and archives", id: "digitalnz", name: "DigitalNZ", url: (q) => "https://digitalnz.org/records?text=" + enc(q) },
+    { group: "Libraries and archives", id: "dcomm", name: "Digital Commonwealth", url: (q) => "https://www.digitalcommonwealth.org/search?q=" + enc(q) },
   ];
 })();

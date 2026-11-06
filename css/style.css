@@ -176,11 +176,14 @@ header.app a.lab:hover { color: var(--ink); }
 .roll .src .st.busy::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 7px; border-radius: 50%; background: var(--key); animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .2; } }
 
-.shelf { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; }
-.shelf .label { margin-right: 4px; }
+.roll .kind { grid-column: 1 / -1; font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--ink-2); padding: 18px 0 2px; border-bottom: 1px solid var(--line-2); }
+.shelf { margin-top: 26px; }
+.shelf h3 { font-family: var(--display); font-size: 17px; font-weight: 600; margin: 0 0 4px; padding-bottom: 7px; border-bottom: 1px solid var(--line-2); }
+.shelfrow { display: grid; grid-template-columns: 210px 1fr; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.shelfrow .links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .shelf a { font-size: 15px; font-weight: 500; }
 .shelf a::after { content: " ↗"; font-size: 13px; }
-.shelf .note { color: var(--ink-3); font-size: 14.5px; }
+.shelf .note { color: var(--ink-3); font-size: 14.5px; margin: 6px 0 0; }
 
 /* ---- results ---- */
 .board { padding: 6px 32px 40px; }
@@ -298,6 +301,7 @@ footer.colophon { max-width: 1180px; margin: 0 auto; padding: 24px 32px 44px; co
   header.app a.lab { display: none; }
   .searchbar, .register { padding-left: 16px; padding-right: 16px; }
   .filters .hint { display: none; }
+  .shelfrow { grid-template-columns: 1fr; gap: 4px; }
   .board { padding: 4px 16px 30px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 14px; }
   .frame .print { height: 170px; }

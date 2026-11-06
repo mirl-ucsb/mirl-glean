@@ -40,6 +40,19 @@
     }
   };
 
+  /* the first image of a IIIF manifest (Presentation 2 or 3), at a given width */
+  MI.iiifFirstImage = async function (manifestUrl, width) {
+    const m = await MI.getJSON(manifestUrl);
+    const canvas = ((m.sequences && m.sequences[0] && m.sequences[0].canvases) || m.items || [])[0];
+    if (!canvas) return "";
+    const anno = canvas.images ? canvas.images[0] : (((canvas.items || [])[0] || {}).items || [])[0];
+    const res = anno && (anno.resource || anno.body);
+    if (!res) return "";
+    const svc = [].concat(res.service || [])[0];
+    const base = svc && (svc["@id"] || svc.id);
+    return base ? base.replace(/\/$/, "") + "/full/" + (width || 2000) + ",/0/default.jpg" : res["@id"] || res.id || "";
+  };
+
   /* run async tasks with a concurrency ceiling */
   MI.pool = async function (items, n, fn) {
     const out = new Array(items.length);

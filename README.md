@@ -15,9 +15,10 @@ only to the sources you switch on; picks and keys stay in this browser.
 Open `index.html` in a browser. That is enough to search, cite, and download from
 most sources.
 
-The Met, the Cleveland Museum of Art, and the Internet Archive do not let a web
-page fetch their image files, so from `file://` those images open in a new tab to
-save by hand. To download them directly, run the local server, which adds a
+Several hosts (among them the Met, Cleveland, the Internet Archive, the Science
+Museum Group, the David Rumsey Map Collection, and Japan Search) do not let a web
+page fetch their image files, so from `file://` or GitHub Pages those images open
+in a new tab to save by hand. To download them directly, run the local server, which adds a
 small image relay:
 
 ```bash
@@ -30,32 +31,52 @@ stores nothing.
 
 ## Sources
 
-Searched live, no key needed:
+Twenty-two collections are searched live at once, grouped in the source list.
+Each can be switched off before a search.
 
-| Source | Holdings | Notes |
-|---|---|---|
-| The Met | Metropolitan Museum of Art | Open Access images marked public domain |
-| Art Institute of Chicago | AIC | CC0 for public-domain works |
-| Cleveland Museum of Art | CMA | CC0 for public-domain works |
-| V&A | Victoria and Albert Museum | Images under the V&A's non-commercial terms |
-| Rijksmuseum | Rijksmuseum | Linked Art API; title and description searched |
-| SMK | Statens Museum for Kunst | Public-domain works marked |
-| Library of Congress | Prints & Photographs | Rights vary; check each record |
-| Wellcome Collection | Wellcome | Licence per image |
-| Smithsonian | Smithsonian Open Access | Runs on the shared `DEMO_KEY`; a free key lifts the rate limit |
-| Europeana | European aggregator | Runs on the public demo key; a personal key is steadier |
-| Internet Archive | archive.org images | Licences often unstated |
-| Wikimedia Commons | Commons | Licence per file |
+**Museums, no key needed:** the Met; Art Institute of Chicago; Cleveland Museum
+of Art; V&A; Rijksmuseum (Linked Art; title and description searched); SMK;
+Minneapolis Institute of Art; Princeton University Art Museum; Yale, through LUX
+(Yale University Art Gallery, Yale Center for British Art, Beinecke, Peabody,
+and Yale's libraries); Science Museum Group; and the Smithsonian (on the shared
+`DEMO_KEY`, a few dozen searches an hour; a free api.data.gov key lifts that).
 
-With a free key, pasted into Keys and settings: **Harvard Art Museums** and
-**DPLA**.
+**Libraries and archives:** Library of Congress (Prints & Photographs);
+Wellcome Collection; Internet Archive; David Rumsey Map Collection; Harvard
+Library (HOLLIS Images and other image collections; thumbnails are public, many
+full images are restricted to Harvard users and are saved as previews).
 
-Opened in a new tab with your query, where you are already signed in:
-**JSTOR** (through the UCSB library proxy; choose Images under content type to
-reach the Artstor collections), the British Museum, the Getty, the National
-Gallery of Art, Calisphere, and NYPL Digital Collections. These have no public
-search API, or their API cannot be reached from a web page. The proxy prefix is
-editable in settings.
+**Aggregators:** Europeana (on its public demo key); Japan Search, Japan's
+national aggregator; K-samsök, Sweden's national heritage aggregator; and
+Openverse, asked only for collections not searched directly above: Brooklyn
+Museum, Museums Victoria, DigitaltMuseum, the Finnish Heritage Agency and
+National Museum of Finland, NYPL, and the Gulbenkian art library.
+
+**Open commons:** Wikimedia Commons, and Flickr's openly licensed photographs
+(through Openverse).
+
+**With a free key** pasted into Keys and settings: Harvard Art Museums, DPLA, and
+Te Papa.
+
+**Opened in a new tab with your query**, where you are already signed in, for
+collections with no search API a web page can use:
+
+- Subscription: JSTOR, through the UCSB library proxy (choose Images under
+  content type to reach the Artstor collections). The proxy prefix is editable
+  in settings.
+- Middle East and North Africa: Arab Image Foundation, Akkasah (NYU Abu Dhabi),
+  Palestinian Museum Digital Archive, Qatar Digital Library, AUB Libraries,
+  Archnet (which cannot take a search from a link, so its search page opens),
+  and the Endangered Archives Programme.
+- Museums: British Museum, Louvre, Getty, National Gallery of Art, Tate, MoMA,
+  Prado, Paris Musées, Staatliche Museen zu Berlin, MK&G Hamburg.
+- Libraries and archives: Calisphere, Online Archive of California, NYPL Digital
+  Collections, Gallica, Digital Bodleian, Deutsche Digitale Bibliothek, Finna,
+  Trove, DigitalNZ, and Digital Commonwealth.
+
+Collections whose sites block automated requests (several of the link-outs) could
+not be checked from outside a browser; their search addresses follow each
+site's own search page.
 
 ## Rights
 

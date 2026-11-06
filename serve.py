@@ -27,9 +27,16 @@ MAX_BYTES = 80 * 1024 * 1024
 
 # hosts the relay may fetch from (a host matches itself and its subdomains)
 ALLOW = (
-    "metmuseum.org", "clevelandart.org", "archive.org", "artic.edu", "vam.ac.uk",
-    "smk.dk", "wellcomecollection.org", "loc.gov", "si.edu", "europeana.eu",
-    "wikimedia.org", "micr.io", "harvardartmuseums.org", "dp.la",
+    # museums
+    "metmuseum.org", "clevelandart.org", "artic.edu", "vam.ac.uk", "smk.dk", "micr.io",
+    "harvardartmuseums.org", "artsmia.org", "princeton.edu", "yale.edu",
+    "sciencemuseumgroup.org.uk", "tepapa.govt.nz", "brooklynmuseum.org", "museumsvictoria.com.au",
+    # libraries, archives, aggregators
+    "archive.org", "wellcomecollection.org", "loc.gov", "si.edu", "europeana.eu", "dp.la",
+    "harvard.edu", "davidrumsey.com", "ndl.go.jp", "jpsearch.go.jp", "dimu.org", "finna.fi",
+    "nypl.org", "gulbenkian.pt", "kulturarvsdata.se",
+    # open commons
+    "wikimedia.org", "openverse.org", "staticflickr.com", "flickr.com",
 )
 
 
