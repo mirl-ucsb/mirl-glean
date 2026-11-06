@@ -308,10 +308,28 @@ button.linkish:hover { color: var(--ink); }
 
 footer.colophon { max-width: 1180px; margin: 0 auto; padding: 24px 32px 44px; color: var(--ink-3); font-size: 14px; border-top: 1px solid var(--line); }
 
+/* ---- embedded in another page ---- */
+.embed-only { display: none; }
+.lab-short { display: none; }
+.embedded .embed-only { display: inline-block; }
+.embedded header.app { display: none; }
+.embedded .searchbar { padding-top: 18px; }
+.embedded .register { padding-top: 18px; padding-bottom: 14px; }
+.embedded .register .head { border-bottom: 0; }
+.embedded footer.colophon { padding-top: 18px; padding-bottom: 24px; }
+
 @media (max-width: 900px) {
   nav.folio { height: auto; flex-wrap: wrap; gap: 6px 22px; padding: 10px 16px; }
   nav.folio .views { order: 3; width: 100%; height: 40px; }
   nav.folio .tools .btn.quiet { display: none; }
+  /* in a frame there is no other way to reach these, so keep them: the views sit
+     beside the name, and the actions take one row of their own, with short labels */
+  .embedded nav.folio .views { order: 0; width: auto; height: 46px; }
+  .embedded nav.folio .tools { order: 3; width: 100%; margin-left: 0; flex-wrap: wrap; gap: 8px; padding-bottom: 4px; }
+  .embedded nav.folio .tools .btn.quiet { display: inline-block; padding: 6px 4px; font-size: 14px; }
+  .embedded nav.folio .tools #copy-cites { margin-left: auto; }
+  .embedded .lab-long { display: none; }
+  .embedded .lab-short { display: inline; }
   header.app { padding: 26px 16px 4px; }
   header.app h1 { font-size: 28px; }
   header.app a.lab { display: none; }

@@ -19,8 +19,13 @@
   const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.getItem(k) || "{}")); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
+  /* embedded in another page (an iframe on the lab site), or asked for with ?embed=1:
+     a compact layout without the title block, with the source list folded away */
+  const EMBED = (() => { try { return window.self !== window.top; } catch (e) { return true; } })() || /[?&]embed=1\b/.test(location.search);
+  if (EMBED) document.documentElement.classList.add("embedded");
+
   const cfg = load(LS_CFG, {
-    keys: {}, off: {}, perSource: 12, cite: "ad", rights: "all", rollHidden: false,
+    keys: {}, off: {}, perSource: 12, cite: "ad", rights: "all", rollHidden: false, embedRollShown: false,
     proxy: "https://proxy.library.ucsb.edu/login?url=",
   });
   cfg.keys = cfg.keys || {}; cfg.off = cfg.off || {};
@@ -82,8 +87,11 @@
       return head + `<button type="button" class="src ${on ? "" : "off"}" data-src="${s.id}" title="${esc(tip)}" ${can ? "" : "data-needkey"}>
         <span class="tick" aria-hidden="true"></span><span class="nm">${esc(s.name)}</span>${st}</button>`;
     }).join("");
-    roll.classList.toggle("hidden", !!cfg.rollHidden);
-    $("#toggle-roll").textContent = cfg.rollHidden ? "Show the list" : "Hide the list";
+    /* embedded, the list and the link-outs start folded and fold together */
+    const hidden = EMBED ? !cfg.embedRollShown : !!cfg.rollHidden;
+    roll.classList.toggle("hidden", hidden);
+    $("#shelf").classList.toggle("hidden", EMBED && hidden);
+    $("#toggle-roll").textContent = hidden ? (EMBED ? "Show sources and more collections" : "Show the list") : (EMBED ? "Hide sources" : "Hide the list");
     renderShelf();
     renderSum();
   }
@@ -438,7 +446,15 @@
     if (cfg.off[id]) delete state.results[id];
     renderRoll(); renderSheet();
   });
-  $("#toggle-roll").addEventListener("click", () => { cfg.rollHidden = !cfg.rollHidden; saveCfg(); renderRoll(); });
+  $("#toggle-roll").addEventListener("click", () => {
+    if (EMBED) cfg.embedRollShown = !cfg.embedRollShown; else cfg.rollHidden = !cfg.rollHidden;
+    saveCfg(); renderRoll();
+  });
+  /* embedded: open the full tool in its own window, carrying the current search */
+  $("#open-full").addEventListener("click", () => {
+    const base = location.href.split("#")[0].replace(/[?&]embed=1\b/, "").replace(/\?$/, "");
+    window.open(base + (state.q ? "#q=" + encodeURIComponent(state.q) : ""), "_blank", "noopener");
+  });
 
   $("#sheet").addEventListener("click", (e) => {
     const t = e.target.closest("[data-try]");
