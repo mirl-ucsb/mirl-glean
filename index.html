@@ -22,6 +22,7 @@
     <button type="button" class="view" data-view="picked">Picked <span class="count" id="pick-count"></span></button>
   </div>
   <div class="tools">
+    <button type="button" class="btn quiet" id="open-report">Report a problem</button>
     <button type="button" class="btn quiet" id="open-settings">Keys and settings</button>
     <button type="button" class="btn" id="copy-cites" disabled>Copy citations</button>
     <button type="button" class="btn primary" id="zip" disabled>Download picks</button>
@@ -76,6 +77,7 @@
 
 <footer class="colophon">
   MIRL Glean, from the Material / Image Research Lab, UC Santa Barbara. It runs in this browser: searches go only to the sources you switch on, and your picks and keys are kept here and nowhere else.
+  Something not working? <button type="button" class="linkish" id="open-report-foot">Report a problem</button>.
 </footer>
 
 <div class="veil hidden" id="veil"></div>
@@ -86,6 +88,8 @@
 </div>
 
 <div class="panel hidden" id="settings" role="dialog" aria-modal="true" aria-label="Keys and settings"></div>
+
+<div class="panel hidden" id="report" role="dialog" aria-modal="true" aria-label="Report a problem"></div>
 
 <div class="toast" id="notice" role="status" aria-live="polite"></div>
 

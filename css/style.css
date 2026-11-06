@@ -281,6 +281,21 @@ dl.cat dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
 .field input, .field select { width: 100%; }
 .field input[data-key], .field #proxy { font-family: var(--mono); font-size: 13.5px; }
 
+/* ---- report a problem ---- */
+.panel textarea {
+  width: 100%; min-height: 130px; resize: vertical; font-family: var(--sans); font-size: 15.5px; line-height: 1.55; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 9px 11px;
+}
+.panel textarea:focus { border-color: var(--key); outline: none; box-shadow: 0 0 0 1px var(--key); }
+.panel .diag {
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere;
+  background: var(--soft); border-radius: var(--radius); padding: 10px 12px; max-height: 220px; overflow: auto; margin: 6px 0 0;
+}
+.panel .send { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.panel .send-note { font-size: 13.5px; color: var(--ink-3); margin-top: 10px; }
+button.linkish { border: 0; background: none; padding: 0; font: inherit; color: var(--key-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+button.linkish:hover { color: var(--ink); }
+
 /* ---- toast ---- */
 .toast {
   position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%);

@@ -247,7 +247,7 @@
     renderPrint();
   }
   function closeOverlays() {
-    ["#veil", "#printview", "#settings"].forEach((s) => $(s).classList.add("hidden"));
+    ["#veil", "#printview", "#settings", "#report"].forEach((s) => $(s).classList.add("hidden"));
     cur = -1;
   }
   async function renderPrint() {
@@ -462,6 +462,83 @@
     if (a.dataset.act === "download") downloadOne(r);
     if (a.dataset.act === "cite") copyCites([r]);
     if (a.dataset.act === "pick") togglePick(r);
+  });
+
+  /* ---------- report a problem ----------
+     Technical details are added for the person reporting; the search terms are
+     not, since a search may be sensitive. They can add them by hand if they wish. */
+  const recentErrors = [];
+  const scrub = (msg) => {
+    let m = String(msg || "");
+    if (state.q) m = m.split(state.q).join("[search]").split(encodeURIComponent(state.q)).join("[search]");
+    return m.slice(0, 200);
+  };
+  window.addEventListener("error", (e) => { recentErrors.push(scrub(e.message)); if (recentErrors.length > 5) recentErrors.shift(); });
+  window.addEventListener("unhandledrejection", (e) => { recentErrors.push(scrub(e.reason && e.reason.message || e.reason)); if (recentErrors.length > 5) recentErrors.shift(); });
+
+  function diagnostics() {
+    const lines = [
+      `MIRL Glean ${VERSION}`,
+      `Page: ${location.origin}${location.pathname}${MI.relay ? " (local relay on)" : ""}`,
+      `Browser: ${navigator.userAgent}`,
+      `Window: ${innerWidth}x${innerHeight}`,
+      `Rights filter: ${cfg.rights}; results per source: ${cfg.perSource}`,
+      `Keys set: ${MI.SOURCES.filter((s) => s.key).map((s) => `${s.short || s.name} ${cfg.keys[s.id] ? "yes" : "no"}`).join(", ")}`,
+    ];
+    const rs = Object.entries(state.results);
+    if (rs.length) {
+      lines.push(`Last search (terms not included), page ${state.page}:`);
+      rs.forEach(([id, r]) => {
+        const s = MI.source(id);
+        lines.push(`  ${s ? s.name : id}: ${r.status === "err" ? "error: " + scrub(r.err) : r.status === "ok" ? `${r.items.length} of ${r.total}` : r.status}`);
+      });
+      const off = MI.SOURCES.filter((s) => cfg.off[s.id]).map((s) => s.short || s.name);
+      if (off.length) lines.push(`  switched off: ${off.join(", ")}`);
+    } else lines.push("No search yet in this visit.");
+    if (recentErrors.length) lines.push("Recent page errors:", ...recentErrors.map((m) => "  " + m));
+    return lines.join("\n");
+  }
+
+  function openReport() {
+    $("#report").innerHTML = `
+      <button class="btn quiet close" data-close>Close</button>
+      <h2>Report a problem</h2>
+      <p>Tell us what happened and what you expected instead. A source that will not answer, a wrong rights label, a citation that reads badly, a download that fails: all of it helps.</p>
+      <h3>What went wrong</h3>
+      <textarea id="report-text" placeholder="For example: searching for a maker, the V&amp;A shows an error, and the citation for the third result has no date."></textarea>
+      <h3>Added for you</h3>
+      <p>Technical details that help us find the problem. Your search terms are not included; add them above only if you want to.</p>
+      <pre class="diag" id="report-diag"></pre>
+      <div class="send">
+        <button class="btn primary" data-send="github">Open a GitHub issue</button>
+        <button class="btn" data-send="email">Send by email</button>
+      </div>
+      <p class="send-note">A GitHub issue is public and needs a GitHub account; you can review it before posting. Email goes privately to the lab at mirl@arthistory.ucsb.edu, from your own mail app.</p>`;
+    $("#report-diag").textContent = diagnostics();
+    $("#veil").classList.remove("hidden");
+    $("#report").classList.remove("hidden");
+    setTimeout(() => $("#report-text").focus(), 30);
+  }
+
+  function sendReport(how) {
+    const text = MI.clean($("#report-text").value) ? $("#report-text").value.trim() : "(no description given)";
+    const first = text.split("\n")[0].slice(0, 70);
+    const title = "Problem: " + (text === "(no description given)" ? "report from MIRL Glean" : first);
+    const body = `${text}\n\n---\n${diagnostics()}`;
+    if (how === "github") {
+      window.open(`https://github.com/mirl-ucsb/mirl-glean/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`, "_blank", "noopener");
+    } else {
+      location.href = `mailto:mirl@arthistory.ucsb.edu?subject=${encodeURIComponent("MIRL Glean: " + title)}&body=${encodeURIComponent(body)}`;
+    }
+    notice(how === "github" ? "A prefilled GitHub issue opened in a new tab; review it there and submit." : "Your mail app should open with the report ready to send.");
+  }
+
+  $("#open-report").addEventListener("click", openReport);
+  $("#open-report-foot").addEventListener("click", openReport);
+  $("#report").addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) return closeOverlays();
+    const b = e.target.closest("[data-send]");
+    if (b) sendReport(b.dataset.send);
   });
 
   function openSettings() { renderSettings(); $("#veil").classList.remove("hidden"); $("#settings").classList.remove("hidden"); }
