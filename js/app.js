@@ -513,7 +513,7 @@
         <button class="btn primary" data-send="github">Open a GitHub issue</button>
         <button class="btn" data-send="email">Send by email</button>
       </div>
-      <p class="send-note">A GitHub issue is public and needs a GitHub account; you can review it before posting. Email goes privately to the lab at mirl@arthistory.ucsb.edu, from your own mail app.</p>`;
+      <p class="send-note">A GitHub issue is public and needs a GitHub account; you can review it before posting. Email goes privately to MIRL at mirl@arthistory.ucsb.edu, from your own mail app.</p>`;
     $("#report-diag").textContent = diagnostics();
     $("#veil").classList.remove("hidden");
     $("#report").classList.remove("hidden");
