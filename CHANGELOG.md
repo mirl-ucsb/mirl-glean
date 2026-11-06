@@ -4,6 +4,10 @@ MIRL Glean keeps its history the way a record keeps its sources: each change
 dated, nothing erased. Versions follow [semantic versioning](https://semver.org);
 picks files from any earlier version open in any later one.
 
+Archived on Zenodo: [10.5281/zenodo.24023294](https://doi.org/10.5281/zenodo.24023294)
+(every version); version 1.0.0 is
+[10.5281/zenodo.24023295](https://doi.org/10.5281/zenodo.24023295).
+
 ## 1.0.0 (2026-11-06)
 
 The first public release.

@@ -22,6 +22,7 @@ authors:
       Architecture, University of California, Santa Barbara
 version: "1.0.0"
 date-released: "2026-11-06"
+doi: 10.5281/zenodo.24023294
 license: MIT
 repository-code: "https://github.com/mirl-ucsb/mirl-glean"
 url: "https://mirl-ucsb.github.io/mirl-glean/"

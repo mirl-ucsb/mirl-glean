@@ -12,6 +12,10 @@ only to the sources you switch on; picks and keys stay in this browser.
 
 **Open the tool:** https://mirl-ucsb.github.io/mirl-glean/
 
+**Cite it:** O'Brien, Jeff. 2026. *MIRL Glean: Images Gathered from Open
+Collections*. Material / Image Research Lab, University of California, Santa
+Barbara. Software. https://doi.org/10.5281/zenodo.24023294
+
 ## Using it
 
 You do not need to install anything or know how to code.
