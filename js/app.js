@@ -95,7 +95,7 @@
     $("#shelf").innerHTML = `<h3>Also search, signed in, in a new tab</h3>` + (q
       ? groups.map((g) => `<div class="shelfrow"><span class="label">${esc(g)}</span><span class="links">` +
           links.filter((l) => l.group === g).map((l) => `<a href="${esc(l.url(q, cfg))}" target="_blank" rel="noopener noreferrer" title="${esc(l.note || "Opens " + l.name + " in a new tab")}">${esc(l.name)}</a>`).join("") + `</span></div>`).join("")
-      : `<p class="note">${links.length} more collections with no open search API, among them JSTOR (through the UCSB proxy), the Arab Image Foundation, Akkasah, the Palestinian Museum Digital Archive, the British Museum, and the Louvre, appear here once you search.</p>`);
+      : `<p class="note">${links.length} more collections with no open search API, among them JSTOR (through the UCSB proxy), the Arab Image Foundation, Akkasah, the Palestinian Museum Digital Archive, the British Museum, the Louvre, the Getty, Tate, and Gallica, appear here once you search.</p>`);
   }
 
   function renderSum() {
