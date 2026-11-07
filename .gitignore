@@ -4,3 +4,7 @@ __pycache__/
 
 # Local chat handoff notes, not part of the published tool
 chat-handoff-*.md
+
+# Cloudflare relay build output
+relay/node_modules/
+relay/.wrangler/

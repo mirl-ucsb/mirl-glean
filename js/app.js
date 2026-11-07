@@ -319,7 +319,10 @@
     };
     try { return Object.assign(await tryFetch(url), { via: "direct" }); }
     catch (e) {
+      /* the host refused: the relay on this computer (serve.py) if it is running,
+         else MIRL's hosted relay (relay/ in the repo), else give up and say so */
       if (MI.relay) return Object.assign(await tryFetch("__mirl/fetch?url=" + encodeURIComponent(url)), { via: "local relay" });
+      if (MI.REMOTE_RELAY) return Object.assign(await tryFetch(MI.REMOTE_RELAY + "/fetch?url=" + encodeURIComponent(url)), { via: "MIRL relay" });
       throw e;
     }
   }
@@ -396,7 +399,7 @@
       <h2>${got} of ${total} images are in the zip</h2>
       <p>${hosts.join(", ").replace(/, ([^,]*)$/, " and $1")} ${hosts.length === 1 ? "does" : "do"} not let web pages download ${hosts.length === 1 ? "its" : "their"} image files, so ${missing.length === 1 ? "this image" : "these images"} could not be added. ${missing.length === 1 ? "Open it below" : "Open each one below"} and save it from the new tab (right-click, Save Image As). The manifest in the zip still lists ${missing.length === 1 ? "it" : "them"}, with ${missing.length === 1 ? "its" : "their"} source, rights, and citation.</p>
       <ul class="missing">${missing.map((x, i) => `<li><span class="mt" dir="auto">${esc(x.title || "Untitled")}</span><span class="ms">${esc(x.source)}</span><button class="btn" data-missing="${i}">Open image</button></li>`).join("")}</ul>
-      <p class="send-note">${MI.relay ? "" : "Running Glean on your own computer with serve.py fetches these too, straight into the zip."}</p>`;
+      <p class="send-note">${MI.relay || MI.REMOTE_RELAY ? "" : "Running Glean on your own computer with serve.py fetches these too, straight into the zip."}</p>`;
     $("#report").dataset.missing = JSON.stringify(missing.map((x) => x.image_url));
     $("#veil").classList.remove("hidden");
     $("#report").classList.remove("hidden");
