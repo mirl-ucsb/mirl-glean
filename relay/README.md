@@ -25,8 +25,8 @@ with a button to open each one, as before.
   `wrangler.jsonc`. Cloudflare's edge may cache an image for a day, which only
   spares the collection a repeat request.
 
-The relay is live at https://mirl-glean-relay.mirl-ucsb.workers.dev, on MIRL's
-Cloudflare account.
+The relay is live at https://mirl-glean-relay.mirl-ucsb.workers.dev, deployed
+from Jeff O'Brien's Cloudflare account (workers.dev subdomain mirl-ucsb).
 
 ## Deploying
 
