@@ -293,6 +293,11 @@ dl.cat dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
 }
 .panel .send { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 .panel .send-note { font-size: 13.5px; color: var(--ink-3); margin-top: 10px; }
+.panel ul.missing { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.panel ul.missing li { display: grid; grid-template-columns: 1fr auto; gap: 2px 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.panel ul.missing .mt { font-family: var(--display); font-weight: 500; font-size: 15.5px; }
+.panel ul.missing .ms { grid-row: 2; font-size: 13.5px; color: var(--ink-3); }
+.panel ul.missing .btn { grid-row: 1 / span 2; grid-column: 2; }
 button.linkish { border: 0; background: none; padding: 0; font: inherit; color: var(--key-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 button.linkish:hover { color: var(--ink); }
 

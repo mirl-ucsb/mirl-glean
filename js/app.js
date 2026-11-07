@@ -380,9 +380,26 @@
     MI.saveBlob(MI.zip(files), `mirl-glean-picks-${stamp}.zip`);
     btn.textContent = "Download picks";
     btn.disabled = false;
-    notice(got === items.length
-      ? `${got} image${got === 1 ? "" : "s"} saved with manifest.json (sha-256, source, rights) and citations.txt.`
-      : `${got} of ${items.length} fetched. ${items.length - got} host${items.length - got === 1 ? "" : "s"} refused page downloads; their links are in the manifest. Start serve.py to fetch them too.`, "ZIP");
+    if (got === items.length) {
+      notice(`${got} image${got === 1 ? "" : "s"} saved with manifest.json (sha-256, source, rights) and citations.txt.`);
+    } else {
+      showMissing(items.filter((x) => !x.file), got, items.length);
+    }
+  }
+
+  /* some collections (the Met, Cleveland, the Science Museum Group) do not let a web
+     page download their image files; say so plainly and open each one to save by hand */
+  function showMissing(missing, got, total) {
+    const hosts = [...new Set(missing.map((x) => x.source))];
+    $("#report").innerHTML = `
+      <button class="btn quiet close" data-close>Close</button>
+      <h2>${got} of ${total} images are in the zip</h2>
+      <p>${hosts.join(", ").replace(/, ([^,]*)$/, " and $1")} ${hosts.length === 1 ? "does" : "do"} not let web pages download ${hosts.length === 1 ? "its" : "their"} image files, so ${missing.length === 1 ? "this image" : "these images"} could not be added. ${missing.length === 1 ? "Open it below" : "Open each one below"} and save it from the new tab (right-click, Save Image As). The manifest in the zip still lists ${missing.length === 1 ? "it" : "them"}, with ${missing.length === 1 ? "its" : "their"} source, rights, and citation.</p>
+      <ul class="missing">${missing.map((x, i) => `<li><span class="mt" dir="auto">${esc(x.title || "Untitled")}</span><span class="ms">${esc(x.source)}</span><button class="btn" data-missing="${i}">Open image</button></li>`).join("")}</ul>
+      <p class="send-note">${MI.relay ? "" : "Running Glean on your own computer with serve.py fetches these too, straight into the zip."}</p>`;
+    $("#report").dataset.missing = JSON.stringify(missing.map((x) => x.image_url));
+    $("#veil").classList.remove("hidden");
+    $("#report").classList.remove("hidden");
   }
 
   async function copyCites(list) {
@@ -553,6 +570,8 @@
   $("#open-report-foot").addEventListener("click", openReport);
   $("#report").addEventListener("click", (e) => {
     if (e.target.closest("[data-close]")) return closeOverlays();
+    const m = e.target.closest("[data-missing]");
+    if (m) { const urls = JSON.parse($("#report").dataset.missing || "[]"); window.open(urls[+m.dataset.missing], "_blank", "noopener"); m.textContent = "Opened"; return; }
     const b = e.target.closest("[data-send]");
     if (b) sendReport(b.dataset.send);
   });

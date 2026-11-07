@@ -295,6 +295,12 @@
     },
     /* the largest image file in the item, found when it is opened or downloaded */
     async resolveFull(r) {
+      /* the Internet Archive's IIIF server lets a page download the image; archive.org/download does not */
+      try {
+        const info = await getJSON(`https://iiif.archive.org/iiif/3/${enc(r.id)}/info.json`);
+        const base = info.id || info["@id"];
+        if (base) return base.replace(/\/$/, "") + "/full/max/0/default.jpg";
+      } catch (e) { /* fall back to the original file */ }
       const d = await getJSON(`https://archive.org/metadata/${enc(r.id)}`);
       const files = (d.files || []).filter((f) => /jpe?g|png|tiff?/i.test(f.format || f.name) && f.source === "original");
       const pick = files.sort((a, b) => (+b.size || 0) - (+a.size || 0))[0];
@@ -439,7 +445,8 @@
         return rec({
           source: "rumsey", id: o.id, title: f["Short Title"] || o.displayName, maker: f["Author"] || f["Publisher"] || "",
           date: f["Date"] || f["Pub Date"] || "", kind: f["Type"] || "Map",
-          thumb: o.urlSize2, full: o.urlSize4 || o.urlSize3 || o.urlSize2,
+          /* Rumsey's IIIF server allows page downloads; its MediaManager images do not */
+          thumb: o.urlSize2, full: `https://www.davidrumsey.com/luna/servlet/iiif/${o.id}/full/2000,/0/default.jpg`,
           link: `https://www.davidrumsey.com/luna/servlet/detail/${o.id}`, institution: this.institution, accession: f["List No"] || o.id,
           rights: rights("by-nc-sa", "CC BY-NC-SA 3.0 (David Rumsey Map Collection)", "https://creativecommons.org/licenses/by-nc-sa/3.0/"),
         });
@@ -463,7 +470,8 @@
         const st = R[code] || (/nc|nd|noncom|edu/.test(code) ? "cond" : "unknown");
         return rec({
           source: "jps", id: x.id, title: c.title, maker: arr(c.contributor)[0] || "", date: arr(c.temporal).filter((t) => /\d{3,4}/.test(t)).pop() || arr(c.temporal)[0] || "",
-          kind: arr(c.category)[0] || "", thumb, full: thumb, iiif: c.iiifUrl || "",
+          /* full is found from the IIIF manifest when there is one (resolveFull), else the thumbnail */
+          kind: arr(c.category)[0] || "", thumb, full: c.iiifUrl ? "" : thumb, iiif: c.iiifUrl || "",
           link: c.linkUrl || `https://jpsearch.go.jp/item/${x.id}`, institution: (c.ownerOrg ? c.ownerOrg.toUpperCase() + " " : "") + "(via Japan Search)",
           accession: x.id, rights: { state: st, label: code ? "Japan Search rights code: " + code : MI.RIGHTS.unknown.label, url: "" },
         });
