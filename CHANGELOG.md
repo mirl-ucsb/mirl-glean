@@ -39,6 +39,6 @@ The first public release.
 - **A local relay.** `serve.py` serves the tool on your own machine and fetches
   images from hosts that refuse page downloads, from an allowlist of
   collection hosts only.
-- **The MIRL identity.** Familjen Grotesk and Epilogue on the lab's paper
+- **The MIRL identity.** Familjen Grotesk and Epilogue on MIRL's paper
   white, with the coral of the MIRL Risograph mark as Glean's key. Arabic and
   right-to-left text set in Noto Naskh Arabic.

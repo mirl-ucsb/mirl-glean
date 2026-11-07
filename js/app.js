@@ -19,7 +19,7 @@
   const load = (k, d) => { try { return Object.assign(d, JSON.parse(localStorage.getItem(k) || "{}")); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
-  /* embedded in another page (an iframe on the lab site), or asked for with ?embed=1:
+  /* embedded in another page (an iframe on the MIRL site), or asked for with ?embed=1:
      a compact layout without the title block, with the source list folded away */
   const EMBED = (() => { try { return window.self !== window.top; } catch (e) { return true; } })() || /[?&]embed=1\b/.test(location.search);
   if (EMBED) document.documentElement.classList.add("embedded");
