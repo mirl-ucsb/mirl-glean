@@ -643,7 +643,7 @@
 
   /* MIRL's hosted image relay (relay/ in this repo), used only when a collection
      refuses a page download. Empty switches it off. */
-  MI.REMOTE_RELAY = "";
+  MI.REMOTE_RELAY = "https://mirl-glean-relay.mirl-ucsb.workers.dev";
 
   MI.SOURCES = S;
   MI.source = (id) => S.find((s) => s.id === id);
