@@ -184,7 +184,10 @@
       if (state.view === "picked") {
         sheet.innerHTML = `<div class="blank"><div class="big">Nothing picked yet.</div><p>Pick images on the sheet; they stay here between visits, ready to cite or download together.</p></div>`;
       } else if (!state.q) {
-        const tries = ["Beirut", "Bonfils", "albumen print", "Chumash basket", "Gaza", "Palmyra", "حروفية"];
+        /* familiar starting points for art and architectural historians: makers,
+           buildings and sites, media, periods and movements */
+        const tries = ["Rembrandt", "Hokusai", "Piranesi", "Hagia Sophia", "Chartres Cathedral", "Frank Lloyd Wright",
+          "Book of Hours", "daguerreotype", "Mughal painting", "Bauhaus", "Roman portrait bust", "architectural drawing"];
         sheet.innerHTML = `<div class="blank"><div class="big">Start with a search.</div>
           <p>One query goes to ${active().length} open collections at once (museums from the Met to Te Papa, national libraries and archives, the aggregators of Europe, Sweden, and Japan, and the open commons) and comes back as one set of results with every licence shown.</p>
           <div class="try">${tries.map((t) => `<button type="button" class="btn quiet" data-try="${esc(t)}" dir="auto">${esc(t)}</button>`).join("")}</div></div>`;
